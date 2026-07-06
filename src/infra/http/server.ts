@@ -12,11 +12,13 @@ const app = fastify()
 
 await app.register(cors, {
   origin: '*',
+  methods: ['GET', 'POST', 'DELETE', 'PUT', 'PATCH'],
 })
 
 app.post('/create-link', async (request, reply) => {
   const createLinkBodySchema = z.object({
     originalUrl: z.string().url('Invalid URL format'),
+    code: z.string().min(1, 'Code is required'),
   })
 
   const result = createLinkBodySchema.safeParse(request.body);
@@ -28,10 +30,10 @@ app.post('/create-link', async (request, reply) => {
     })
   }
 
-  const { originalUrl } = result.data;
+  const { originalUrl, code } = result.data;
 
   try {
-    const link = await createShortUrl({ originalUrl });
+    const link = await createShortUrl({ originalUrl, code });
     return reply.status(201).send(link);
   } catch (error: any) {
     return reply.status(400).send({ message: error.message });
@@ -45,9 +47,12 @@ app.get('/:code', async (request, reply) => {
 
   const { code } = getLinkParamsSchema.parse(request.params);
 
+  if (code === 'favicon.ico' || code === 'robots.txt') {
+    return reply.status(404).send({ message: 'Not found' });
+  }
+
   try {
     const { originalUrl } = await getOriginalUrl({ code });
-    
     return reply.status(200).send({ originalUrl });
   } catch (error: any) {
     return reply.status(404).send({ message: error.message });
@@ -70,15 +75,15 @@ app.get('/list-links', async (request, reply) => {
   }
 });
 
-app.delete('/:code', async (request, reply) => {
+app.delete('/:id', async (request, reply) => {
   const deleteLinkParamsSchema = z.object({
-    code: z.string(),
+    id: z.string(),
   });
 
-  const { code } = deleteLinkParamsSchema.parse(request.params)
+  const { id } = deleteLinkParamsSchema.parse(request.params);
 
   try {
-    await deleteLink({ code })
+    await deleteLink({ id })
     return reply.status(204).send()
   } catch (error: any) {
     return reply.status(404).send({ message: error.message })

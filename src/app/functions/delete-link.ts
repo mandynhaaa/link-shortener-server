@@ -3,13 +3,13 @@ import { links } from '../../infra/db/schemas/links.js'
 import { eq } from 'drizzle-orm'
 
 interface DeleteLinkRequest {
-  code: string
+  id: string
 }
 
-export async function deleteLink({ code }: DeleteLinkRequest): Promise<void> {
+export async function deleteLink({ id }: DeleteLinkRequest): Promise<void> {
   const result = await db
     .delete(links)
-    .where(eq(links.code, code))
+    .where(eq(links.id, id))
     .returning({ id: links.id })
 
   if (result.length === 0) {

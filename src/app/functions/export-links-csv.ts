@@ -32,7 +32,7 @@ export async function exportLinksCsv(): Promise<ExportLinksCsvResponse> {
       'URL Original': link.originalUrl,
       'URL Encurtada': `http://localhost:3333/${link.code}`,
       'Contagem de Acessos': link.clicks,
-      'Data de Criacao': link.createdAt.toISOString(),
+      'Data de Criacao': link.createdAt.toString(),
     })
   }
   
